@@ -4,23 +4,33 @@
 #include<semaphore.h>
 #include<pthread.h>
 #include<time.h>
+#include<linux/input.h>
+#include<sys/stat.h>
+#include<sys/types.h>
+#include<sys/stat.h>
+#include<fcntl.h>
 
 #define MAX_TASKS 20
+#define MAX_EVENTS 10
 
 typedef struct timespec tspec;
 
 struct task_param {
-	void *arg;
+	char *arg;
 	int index;
 	tspec period;
 	int priority;
 	tspec at;
-	void (*body)(void *);
+	void (*body)(char *);
+	int event;
+	int end_time;
 	pthread_mutex_t mux;
 };
 
 /* Prototypes */
 void task_wait_for_activation();
+void periodic_task(char *);
+void aperiodic_task(char *);
 
 /* Globals */
 static int task_count = 0;
@@ -32,11 +42,13 @@ tspec sys_start_time;
 int task_policy = 0;   // FIFO has to set.
 int task_protocol = 0;
 static __thread int task_idx;
-
+sem_t _event_sem[MAX_EVENTS];
+int _twait_count[MAX_EVENTS];
 
 static void *task_std_body(void *arg) {
 	struct task_param *tdes = (struct task_param *)arg;
 	task_idx = tdes->index;
+	printf("task->arg %s\n", tdes->arg);
 	(tdes->body)(tdes->arg);
 	return 0;
 }
@@ -59,6 +71,10 @@ void system_init() {
 	for (i = 0; i < MAX_TASKS; i++) {
 		sem_init(&_tsem[i], 0, 0);
 	}
+
+	for (i = 0; i < MAX_EVENTS; i++) {
+		sem_init(&_event_sem[i], 0, 0);
+	}
 	
 	pmux_create_pi(&_tp_mutex);
 }
@@ -74,13 +90,25 @@ tspec tspec_from(long tu)
     return t;
 }
 
-void set_taskparam(void (*task)(void *), char *task_spec, int i) {
-	// TODO
-	_tp[i].arg = task_spec;
+void set_taskparam(char *task_spec, int i) {	
+	int len = strlen(task_spec);	
+	_tp[i].arg = (char *) malloc(len);
+	strcpy(_tp[i].arg, task_spec);
 	_tp[i].index = i;
-	_tp[i].period = tspec_from(500);
-	_tp[i].priority = 10;
-	_tp[i].body = task;
+	
+	char *pch = strtok(task_spec, " ");
+
+  	if (strcmp(pch, "P") == 0) {
+		_tp[i].body = periodic_task;
+		_tp[i].period = tspec_from(atoi(strtok(NULL, " ")));
+		_tp[i].priority = atoi(strtok(NULL, " "));
+	} else {
+		_tp[i].body = aperiodic_task;
+		_tp[i].event = atoi(strtok(NULL, " "));
+		_tp[i].priority = atoi(strtok(NULL, " "));
+		_tp[i].end_time = atoi(strtok(NULL, " "));
+	}
+	
 	pmux_create_pi(&_tp[i].mux);	
 }
 
@@ -90,12 +118,12 @@ static void release_tp(int i) {
 	pthread_mutex_unlock(&_tp_mutex);
 }
 
-int create_task(void (*task)(void *), char *task_spec) {
+int create_task(char *task_spec) {
 	pthread_attr_t myatt;
 	struct sched_param mypar;
 	int i = task_count++;
 
-	set_taskparam(task, task_spec, i);
+	set_taskparam(task_spec, i);
 	pthread_attr_init(&myatt);
 	pthread_attr_setschedpolicy(&myatt, task_policy);
 	mypar.sched_priority = _tp[i].priority;
@@ -138,6 +166,7 @@ void task_wait_for_activation() {
 }
 
 void task_activation(int i) {
+	tspec t;
 	pthread_mutex_lock(&_tp[i].mux);
 	clock_gettime(CLOCK_MONOTONIC, &t);
 	_tp[i].at = tspec_add(&t, &_tp[i].period);
@@ -145,15 +174,47 @@ void task_activation(int i) {
 	pthread_mutex_unlock(&_tp[i].mux);
 }
 
-void task(void *arg) {
-	int i = 0;
-	printf("created\n\n");
+void task_iterate(int x) {
+	int i = 0;	
+	printf("x = %d\n", x);
+	for (i = 0; i < x; i++) {
+		
+	}
+}
+		
+
+void periodic_task(char *arg) {
+	printf("P task created\n\n");
 	task_wait_for_activation();
+
 	while(1) {
-		for (i = 0; i < 1000; i++) {
-			printf("%d\t", i);
+		printf("P task exe...:%s\n", arg);
+		char *arg_copy = (char *)malloc(strlen(arg));
+		strcpy(arg_copy, arg);
+		char *pch = strtok(arg_copy, " ");
+		strtok(NULL, " ");		
+		strtok(NULL, " ");
+		pch = strtok(NULL, " ");
+		while(pch != NULL) {
+			task_iterate(atoi(pch));
+			pch = strtok(NULL, " ");
 		}
+		free(arg_copy);
 		task_wait_for_period();
+	}
+}
+
+void aperiodic_task(char *arg) {
+	int i = 0;	
+	printf("A P task created count: %d\n", ++_twait_count[_tp[task_idx].event]);
+	task_wait_for_activation();
+
+	while(1) {
+		sem_wait(&_event_sem[_tp[task_idx].event]);	
+		printf("A task exe...\n");
+		for (i = 0; i < 1000; i++) {
+		}
+		i = 0;
 	}
 }
 
@@ -167,25 +228,36 @@ int main(int argc, char **argv) {
 
 	if (fp == NULL)
     		return 1;
-
+	
+	getline(&line, &n, fp);
 	while ((len = getline(&line, &n, fp)) != -1) {
     	printf("Retrieved line of length %zd:\n", len);
     	printf("%s\n", line);
-			
-		/*char *pch = strtok(line, " ");
-  		
-		while (pch != NULL) {
-    			printf ("%s\n", pch);
-    			pch = strtok(NULL, " ");
- 		}*/
-		printf("\n%d\n", create_task(task, line));
+		create_task(line);
 	}
 
 	//if (line)
     	//	free(line);
 	int i = 0;
 	for (i = 0; i < task_count; i++) task_activation(i);
-	while(1);
+	
+	int fd = open("/dev/input/event2", O_RDONLY);
+    struct input_event ev;
+
+	printf("Listening to key-press event...\n");
+    while (1)
+    {     
+        read(fd, &ev, sizeof(struct input_event));
+        if(ev.type == 1) {
+            if(ev.value == 0 && (ev.code > 0 && ev.code < 10)) {
+                printf(" : [key %i]\n ", ev.code);
+				for(i = 0; i < _twait_count[ev.code]; i++) {
+					printf("Waking %d \n", i);
+					sem_post(&_event_sem[ev.code]);
+				}
+			}
+		}
+    }
 
 	return 0;
 }

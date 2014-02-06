@@ -16,8 +16,8 @@ int main(int argc, char **argv)
     struct input_event ev;
 
     while (1)
-    {
-        read(fd, &ev, sizeof(struct input_event));
+    {        
+		read(fd, &ev, sizeof(struct input_event));
 
         if(ev.type == 1)
             //printf("key %i state %i\n", ev.code, ev.value);
