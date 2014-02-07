@@ -15,22 +15,45 @@
 
 typedef struct timespec tspec;
 
+struct node {
+	int val;
+	char type;
+	struct node *next;
+};
+typedef struct node* NODE;
+
+NODE insert_rear(NODE first, int val, char type) {
+	NODE temp, cur;
+	temp = (NODE) malloc(sizeof(struct node));
+	temp->val = val;
+	temp->type = type;
+	temp->next = NULL;
+
+	if (first == NULL) {
+    	first = temp;
+	} else {
+		cur = first;
+		while (cur->next != NULL) cur = cur->next;
+		cur->next = temp;
+	}
+	return first;
+}
+
 struct task_param {
-	char *arg;
+	NODE arg;
 	int index;
 	tspec period;
 	int priority;
 	tspec at;
-	void (*body)(char *);
+	void (*body)();
 	int event;
-	int end_time;
 	pthread_mutex_t mux;
 };
 
 /* Prototypes */
 void task_wait_for_activation();
-void periodic_task(char *);
-void aperiodic_task(char *);
+void periodic_task();
+void aperiodic_task();
 
 /* Globals */
 static int task_count = 0;
@@ -48,8 +71,7 @@ int _twait_count[MAX_EVENTS];
 static void *task_std_body(void *arg) {
 	struct task_param *tdes = (struct task_param *)arg;
 	task_idx = tdes->index;
-	printf("task->arg %s\n", tdes->arg);
-	(tdes->body)(tdes->arg);
+	(tdes->body)();
 	return 0;
 }
 
@@ -90,25 +112,40 @@ tspec tspec_from(long tu)
     return t;
 }
 
-void set_taskparam(char *task_spec, int i) {	
-	int len = strlen(task_spec);	
-	_tp[i].arg = (char *) malloc(len);
-	strcpy(_tp[i].arg, task_spec);
-	_tp[i].index = i;
-	
+void set_taskparam(char *task_spec, int i) {		
 	char *pch = strtok(task_spec, " ");
+	int val = 0;
+	char c;
 
   	if (strcmp(pch, "P") == 0) {
 		_tp[i].body = periodic_task;
 		_tp[i].period = tspec_from(atoi(strtok(NULL, " ")));
 		_tp[i].priority = atoi(strtok(NULL, " "));
+		
+		while ((pch = strtok(NULL, " ")) != NULL) {
+			c = pch[0];
+			if (c == 'L') {
+				printf("Lock variable: %s\n", pch);								
+				sscanf(pch, "L(%d)", &val);
+				_tp[i].arg = insert_rear(_tp[i].arg, val, 'L');
+			} else if (c == 'U') {
+				printf("Unlock variable: %s\n", pch);								
+				sscanf(pch, "U(%d)", &val);
+				_tp[i].arg = insert_rear(_tp[i].arg, val, 'U');
+			} else {
+				printf("Iteration variable: %s\n", pch);								
+				sscanf(pch, "%d", &val);
+				_tp[i].arg = insert_rear(_tp[i].arg, val, 'I');
+			} 
+		} 
 	} else {
 		_tp[i].body = aperiodic_task;
 		_tp[i].event = atoi(strtok(NULL, " "));
 		_tp[i].priority = atoi(strtok(NULL, " "));
-		_tp[i].end_time = atoi(strtok(NULL, " "));
+		_tp[i].arg = insert_rear(_tp[i].arg, atoi(strtok(NULL, " ")), 'I');
 	}
-	
+
+	_tp[i].index = i;
 	pmux_create_pi(&_tp[i].mux);	
 }
 
@@ -181,40 +218,39 @@ void task_iterate(int x) {
 		
 	}
 }
-		
 
-void periodic_task(char *arg) {
+void periodic_task() {
 	printf("P task created\n\n");
+	NODE first = _tp[task_idx].arg;
 	task_wait_for_activation();
 
 	while(1) {
-		printf("P task exe...:%s\n", arg);
-		char *arg_copy = (char *)malloc(strlen(arg));
-		strcpy(arg_copy, arg);
-		char *pch = strtok(arg_copy, " ");
-		strtok(NULL, " ");		
-		strtok(NULL, " ");
-		pch = strtok(NULL, " ");
-		while(pch != NULL) {
-			task_iterate(atoi(pch));
-			pch = strtok(NULL, " ");
+		printf("P task exe...\n");
+		while (first != NULL) {
+			if (first->type == 'L') {
+				printf("Lock detected\n");
+			} else if(first->type == 'U') {
+				printf("Unlock detected\n");
+			} else {
+				printf("Periodic Iteration detected: %c\n", first->type);
+				task_iterate(first->val);
+			}
+			first = first->next;			
 		}
-		free(arg_copy);
 		task_wait_for_period();
 	}
 }
 
-void aperiodic_task(char *arg) {
-	int i = 0;	
+void aperiodic_task() {		
 	printf("A P task created count: %d\n", ++_twait_count[_tp[task_idx].event]);
+	NODE first = _tp[task_idx].arg;
 	task_wait_for_activation();
 
 	while(1) {
 		sem_wait(&_event_sem[_tp[task_idx].event]);	
 		printf("A task exe...\n");
-		for (i = 0; i < 1000; i++) {
-		}
-		i = 0;
+		printf("Aperiodic Iteration detected\n");
+		task_iterate(first->val);
 	}
 }
 
@@ -236,8 +272,6 @@ int main(int argc, char **argv) {
 		create_task(line);
 	}
 
-	//if (line)
-    	//	free(line);
 	int i = 0;
 	for (i = 0; i < task_count; i++) task_activation(i);
 	
@@ -249,11 +283,11 @@ int main(int argc, char **argv) {
     {     
         read(fd, &ev, sizeof(struct input_event));
         if(ev.type == 1) {
-            if(ev.value == 0 && (ev.code > 0 && ev.code < 10)) {
-                printf(" : [key %i]\n ", ev.code);
-				for(i = 0; i < _twait_count[ev.code]; i++) {
+            if(ev.value == 0 && (ev.code > 0 && ev.code <= 11)) {
+                printf("Key-Pressed : [key %i]\n ", (ev.code - 1) % 10);
+				for(i = 0; i < _twait_count[(ev.code - 1) % 10]; i++) {
 					printf("Waking %d \n", i);
-					sem_post(&_event_sem[ev.code]);
+					sem_post(&_event_sem[(ev.code - 1) % 10]);
 				}
 			}
 		}
