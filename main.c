@@ -232,7 +232,7 @@ void periodic_task() {
 			} else if(first->type == 'U') {
 				printf("Unlock detected\n");
 			} else {
-				printf("Periodic Iteration detected: %c\n", first->type);
+				printf("Periodic Iteration detected\n");
 				task_iterate(first->val);
 			}
 			first = first->next;			
