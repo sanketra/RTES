@@ -6,10 +6,15 @@ void periodic_task();
 void aperiodic_task();
 static void release_tp(int);
 
+/* Task exit handler. 
+   Releases allocated memory in each task */
 static void task_exit_handler() {
+	// Clean up
 	release_tp(task_idx);
 }
 
+/* Common task body initially exeuted by all tasks
+   before calling respective task function.*/
 static void *task_std_body(void *arg) {
 	struct task_param *tdes = (struct task_param *)arg;
 	task_idx = tdes->index;
@@ -19,18 +24,18 @@ static void *task_std_body(void *arg) {
 	return 0;
 }
 
+/* Creates a mutex variable */
 int pmux_create_pi(pthread_mutex_t *m)
 {
-  pthread_mutexattr_t mta;
-  pthread_mutexattr_init(&mta);
-  pthread_mutexattr_setprotocol(&mta, PTHREAD_PRIO_INHERIT);
-
-  int ret = pthread_mutex_init(m, &mta);
-
-  pthread_mutexattr_destroy(&mta);
-  return ret;
+	pthread_mutexattr_t mta;
+	pthread_mutexattr_init(&mta);
+	pthread_mutexattr_setprotocol(&mta, PTHREAD_PRIO_INHERIT);
+	int ret = pthread_mutex_init(m, &mta);
+	pthread_mutexattr_destroy(&mta);
+	return ret;
 }
 
+/* Initialises all semaphores and creates mutex used in the program */
 void system_init() {
 	int i = 0;
 	
@@ -49,6 +54,7 @@ void system_init() {
 	pmux_create_pi(&_tp_mutex);
 }
 
+/* Returns a tspec instance for a period. */
 tspec tspec_from(long tu)
 {
     tspec t;
@@ -60,6 +66,7 @@ tspec tspec_from(long tu)
     return t;
 }
 
+/* Initialses task params for each task */
 void set_taskparam(char *task_spec, int i) {		
 	char *pch = strtok(task_spec, " ");
 	int val = 0;
@@ -97,12 +104,16 @@ void set_taskparam(char *task_spec, int i) {
 	pmux_create_pi(&_tp[i].mux);	
 }
 
+/* Releases mutex that exists with each task */
 static void release_tp(int i) {
 	pthread_mutex_lock(&_tp_mutex);
 	pthread_mutex_destroy(&_tp[i].mux);
 	pthread_mutex_unlock(&_tp_mutex);
 }
 
+/* Parses the input from the file
+   Creates periodic and aperiodic task based on the task spec
+   Assigns the priority for each task */
 int create_task(char *task_spec) {
 	pthread_attr_t myatt;
 	struct sched_param mypar;
@@ -115,7 +126,7 @@ int create_task(char *task_spec) {
 	pthread_attr_setschedparam(&myatt, &mypar);
 	
 	int ret = pthread_create(&_taskid[i], &myatt, task_std_body, (void *)(&_tp[i]));
-//	pthread_attr_destory(&myatt);
+	//pthread_attr_destory(&myatt);
 	
 	
 	if (ret == 0) {
@@ -126,6 +137,7 @@ int create_task(char *task_spec) {
 	}
 }
 
+/* Adds to tspec instances */
 tspec tspec_add(const tspec *a, const tspec *b) {
 	tspec s;
 	s.tv_nsec = a->tv_nsec + b->tv_nsec;
@@ -139,6 +151,7 @@ tspec tspec_add(const tspec *a, const tspec *b) {
 	return s;
 }
 
+/* Blocks the calling task until its period elapses */
 void task_wait_for_period() {
 	clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &(_tp[task_idx].at), NULL);
 	pthread_mutex_lock(&_tp[task_idx].mux);
@@ -146,10 +159,12 @@ void task_wait_for_period() {
 	pthread_mutex_unlock(&_tp[task_idx].mux);
 }
 
+/* Blocks the calling task until a activation signal is received */
 void task_wait_for_activation() {
 	sem_wait(&_tsem[task_idx]);
 }
 
+/* Activates the task i */
 void task_activation(int i) {
 	tspec t;
 	pthread_mutex_lock(&_tp[i].mux);
@@ -159,14 +174,16 @@ void task_activation(int i) {
 	pthread_mutex_unlock(&_tp[i].mux);
 }
 
+/* Task work body which iterates for x times */
 void task_iterate(int x) {
-	int i = 0;	
+	int i = 0, j = 0;	
 	printf("x = %d\n", x);
 	for (i = 0; i < x; i++) {
-		
+		j += i;
 	}
 }
 
+/* Periodic task function */
 void periodic_task() {
 	printf("P task created\n\n");
 	NODE first = _tp[task_idx].arg;
@@ -191,6 +208,7 @@ void periodic_task() {
 	}
 }
 
+/* Apeeriodic task function */
 void aperiodic_task() {		
 	printf("A P task created count: %d\n", ++_twait_count[_tp[task_idx].event]);
 	NODE first = _tp[task_idx].arg;
@@ -205,7 +223,6 @@ void aperiodic_task() {
 }
 
 /*Key press handler thread*/
-
 static void* wait_for_keypress() {
 	int fd = open("/dev/input/by-path/platform-i8042-serio-0-event-kbd", O_RDONLY);
     struct input_event ev;
@@ -226,6 +243,10 @@ static void* wait_for_keypress() {
     }
 }
 
+/* Main reads the input file
+   Activates the tasks
+   Sleeps till the total execution time elapses
+   Signals other threads to terminate */
 int main(int argc, char **argv) {
 	FILE *fp;
 	char *line = NULL;
