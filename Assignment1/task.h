@@ -14,8 +14,9 @@
 
 #define MAX_TASKS 20
 #define MAX_EVENTS 10
-#define EVENT_THREAD_PRIORITY 30
+#define EVENT_THREAD_PRIORITY 99
 #define MAX_MUTEXES 10
+#define KBD_PATH "/dev/input/by-path/platform-i8042-serio-0-event-kbd"
 
 typedef struct timespec tspec;
 
@@ -44,4 +45,3 @@ sem_t _event_sem[MAX_EVENTS];
 int _twait_count[MAX_EVENTS];
 pthread_t event_thread;
 pthread_mutex_t task_mut[MAX_MUTEXES];
-int flag;

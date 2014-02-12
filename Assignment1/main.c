@@ -10,6 +10,8 @@ static void release_tp(int);
    Releases allocated memory in each task */
 static void task_exit_handler() {
 	// Clean up
+	printf("Clean up...%d\n", task_idx);
+	release_nodes(_tp[task_idx].arg);
 	release_tp(task_idx);
 }
 
@@ -187,10 +189,12 @@ void task_iterate(int x) {
 void periodic_task() {
 	printf("P task created\n\n");
 	NODE first = _tp[task_idx].arg;
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	task_wait_for_activation();
 
-	while(flag == 1) {
+	while(1) {
 		printf("P task exe...\n");
+		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 		while (first != NULL) {
 			if (first->type == 'L') {
 				printf("Lock detected\n");
@@ -204,31 +208,37 @@ void periodic_task() {
 			}
 			first = first->next;			
 		}
+		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 		task_wait_for_period();
 	}
 }
 
-/* Apeeriodic task function */
+/* Aperiodic task function */
 void aperiodic_task() {		
 	printf("A P task created count: %d\n", ++_twait_count[_tp[task_idx].event]);
-	NODE first = _tp[task_idx].arg;
+	NODE first = _tp[task_idx].arg;	
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	task_wait_for_activation();
 
-	while(flag == 1) {
+	while(1) {
 		sem_wait(&_event_sem[_tp[task_idx].event]);	
 		printf("A task exe...\n");
 		printf("Aperiodic Iteration detected\n");
+		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 		task_iterate(first->val);
+		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	}
 }
 
 /*Key press handler thread*/
 static void* wait_for_keypress() {
-	int fd = open("/dev/input/by-path/platform-i8042-serio-0-event-kbd", O_RDONLY);
+	int fd = open(KBD_PATH, O_RDONLY);
     struct input_event ev;
 	int i = 0;
 	printf("Listening to key-press event...\n");
-    while (1)
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+
+    while(1)
     {     
         read(fd, &ev, sizeof(struct input_event));
         if(ev.type == 1) {
@@ -252,7 +262,6 @@ int main(int argc, char **argv) {
 	char *line = NULL;
 	size_t n = 0;
 	size_t len;
-	flag = 1;
 	fp = fopen(argv[1], "r");
 
 	if (fp == NULL)
@@ -267,9 +276,6 @@ int main(int argc, char **argv) {
     	printf("%s\n", line);
 		create_task(line);
 	}
-
-	int i = 0;
-	for (i = 0; i < task_count; i++) task_activation(i);
 	
 	pthread_attr_t myatt;
 	struct sched_param mypar;
@@ -277,10 +283,10 @@ int main(int argc, char **argv) {
 	pthread_attr_setschedpolicy(&myatt, task_policy);
 	mypar.sched_priority = EVENT_THREAD_PRIORITY;
 	pthread_attr_setschedparam(&myatt, &mypar);
-	pthread_create(&event_thread, &myatt, wait_for_keypress, NULL);	
+	pthread_create(&event_thread, &myatt, wait_for_keypress, NULL);
 	
-	printf("***************%d\n", time);
-	
+	int i = 0;
+	for (i = 0; i < task_count; i++) task_activation(i);
 	
 	tspec sys_time;
 	clock_gettime(CLOCK_MONOTONIC, &sys_time);
@@ -289,11 +295,14 @@ int main(int argc, char **argv) {
 	clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &end_time, NULL);
 	
 	printf("\n\n\n\n\nMain thread woke up\n\n\n\n\n");
-	flag = 0;
-	
+	for(i = 0; i < task_count; i++) {
+    	pthread_cancel(_taskid[i]);
+	}
     for(i = 0; i < task_count; i++) {
     	pthread_join(_taskid[i], NULL);
 	}
+	pthread_cancel(event_thread);
+	pthread_join(event_thread, NULL);
  
 	printf("\n\n\n\n\nMain thread exiting\n\n\n\n\n");
 	return 0;

@@ -24,3 +24,21 @@ NODE insert_rear(NODE first, int val, char type) {
 	}
 	return first;
 }
+
+void release_nodes(NODE first) {
+	if(first == NULL) return;
+
+	NODE temp;
+	
+	while(first != NULL) {
+		temp = first;		
+		first = first->next;
+		free(temp);
+	}
+}
+
+
+
+
+
+	
