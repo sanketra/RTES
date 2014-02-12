@@ -88,137 +88,59 @@ Iteration variable: 100
 Retrieved line of length 11:
 A 1 90 500
 
+Iteration variable: 500
+
 Retrieved line of length 11:
 A 2 91 300
+
+Iteration variable: 300
 
 Retrieved line of length 11:
 A 5 92 100
 
+Iteration variable: 100
+
 Retrieved line of length 28:
 A 7 93 50 L(1) 100 U(1) 300
+
+Iteration variable: 50
+Lock variable: L(1)
+Iteration variable: 100
+Unlock variable: U(1)
+Iteration variable: 300
 
 Retrieved line of length 28:
 A 8 94 70 L(2) 100 U(2) 300
 
+Iteration variable: 70
+Lock variable: L(2)
+Iteration variable: 100
+Unlock variable: U(2)
+Iteration variable: 300
+
 P task created
 
-P task exe...
-Periodic Iteration detected
-x = 200
-Lock detected
-Periodic Iteration detected
-x = 5
-Lock detected
-Periodic Iteration detected
-x = 100
-Lock detected
-Periodic Iteration detected
-x = 5
-Lock detected
-Periodic Iteration detected
-x = 50
-Unlock detected
-Periodic Iteration detected
-x = 5
-Unlock detected
-Periodic Iteration detected
-x = 100
-Unlock detected
-Periodic Iteration detected
-x = 10
-Unlock detected
-Periodic Iteration detected
-x = 100
+P task created
+
+A P task created count: 1
 A P task created count: 1
 A P task created count: 1
 P task created
 
-P task exe...
-Periodic Iteration detected
-x = 100
-Lock detected
-Periodic Iteration detected
-x = 50
-Unlock detected
-Periodic Iteration detected
-x = 100
 A P task created count: 1
-A P task created count: 1
-P task created
-
-P task exe...
-Periodic Iteration detected
-x = 100
-Lock detected
-Periodic Iteration detected
-x = 50
-Unlock detected
-Periodic Iteration detected
-x = 100
 A P task created count: 1
 Listening to key-press event...
 P task created
 
-P task exe...
-Periodic Iteration detected
-x = 100
-Lock detected
-Periodic Iteration detected
-x = 90
-Lock detected
-Periodic Iteration detected
-x = 90
-Lock detected
-Periodic Iteration detected
-x = 90
-Unlock detected
-Periodic Iteration detected
-x = 90
-Unlock detected
-Periodic Iteration detected
-x = 10
-Unlock detected
-Periodic Iteration detected
-x = 100
+P task created
+
+P task created
+
 P task created
 
 P task exe...
-Periodic Iteration detected
-x = 20
-Lock detected
-Periodic Iteration detected
-x = 80
-Lock detected
-Periodic Iteration detected
-x = 90
-Unlock detected
-Periodic Iteration detected
-x = 10
-Unlock detected
-Periodic Iteration detected
-x = 100
-P task created
-
 P task exe...
-Periodic Iteration detected
-x = 300
-Lock detected
-Periodic Iteration detected
-x = 50
-Unlock detected
-Periodic Iteration detected
-x = 100
-P task created
-
 P task exe...
-Periodic Iteration detected
-x = 10
-Lock detected
-Periodic Iteration detected
-x = 90
-Unlock detected
-Periodic Iteration detected
-x = 300
 P task exe...
 P task exe...
 P task exe...
@@ -272,6 +194,9 @@ P task exe...
 P task exe...
 P task exe...
 P task exe...
+Key-Pressed : [key 1]
+ Waking...0 
+A task exe...
 P task exe...
 P task exe...
 P task exe...
@@ -292,6 +217,9 @@ P task exe...
 P task exe...
 P task exe...
 P task exe...
+Key-Pressed : [key 2]
+ Waking...0 
+A task exe...
 P task exe...
 P task exe...
 P task exe...
@@ -303,6 +231,16 @@ P task exe...
 P task exe...
 P task exe...
 P task exe...
+P task exe...
+P task exe...
+P task exe...
+P task exe...
+P task exe...
+P task exe...
+P task exe...
+Key-Pressed : [key 8]
+ Waking...0 
+A task exe...
 P task exe...
 P task exe...
 P task exe...
@@ -335,15 +273,15 @@ Main thread woke up
 
 
 
+Clean up...7
 Clean up...8
 Clean up...9
 Clean up...10
 Clean up...11
-Clean up...4
 Clean up...5
+Clean up...4
 Clean up...6
 Clean up...3
-Clean up...7
 Clean up...1
 Clean up...0
 Clean up...2

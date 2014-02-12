@@ -77,30 +77,30 @@ void set_taskparam(char *task_spec, int i) {
   	if (strcmp(pch, "P") == 0) {
 		_tp[i].body = periodic_task;
 		_tp[i].period = tspec_from(atoi(strtok(NULL, " ")));
-		_tp[i].priority = atoi(strtok(NULL, " "));
 		
-		while ((pch = strtok(NULL, " ")) != NULL) {
-			c = pch[0];
-			if (c == 'L') {
-				printf("Lock variable: %s\n", pch);								
-				sscanf(pch, "L(%d)", &val);
-				_tp[i].arg = insert_rear(_tp[i].arg, val, 'L');
-			} else if (c == 'U') {
-				printf("Unlock variable: %s\n", pch);								
-				sscanf(pch, "U(%d)", &val);
-				_tp[i].arg = insert_rear(_tp[i].arg, val, 'U');
-			} else {
-				printf("Iteration variable: %s\n", pch);								
-				sscanf(pch, "%d", &val);
-				_tp[i].arg = insert_rear(_tp[i].arg, val, 'I');
-			} 
-		} 
 	} else {
 		_tp[i].body = aperiodic_task;
 		_tp[i].event = atoi(strtok(NULL, " "));
-		_tp[i].priority = atoi(strtok(NULL, " "));
-		_tp[i].arg = insert_rear(_tp[i].arg, atoi(strtok(NULL, " ")), 'I');
 	}
+	
+	_tp[i].priority = atoi(strtok(NULL, " "));
+		
+	while ((pch = strtok(NULL, " ")) != NULL) {
+		c = pch[0];
+		if (c == 'L') {
+			printf("Lock variable: %s\n", pch);								
+			sscanf(pch, "L(%d)", &val);
+			_tp[i].arg = insert_rear(_tp[i].arg, val, 'L');
+		} else if (c == 'U') {
+			printf("Unlock variable: %s\n", pch);								
+			sscanf(pch, "U(%d)", &val);
+			_tp[i].arg = insert_rear(_tp[i].arg, val, 'U');
+		} else {
+			printf("Iteration variable: %s\n", pch);								
+			sscanf(pch, "%d", &val);
+			_tp[i].arg = insert_rear(_tp[i].arg, val, 'I');
+		} 
+	} 
 
 	_tp[i].index = i;
 	pmux_create_pi(&_tp[i].mux);	
@@ -179,7 +179,6 @@ void task_activation(int i) {
 /* Task work body which iterates for x times */
 void task_iterate(int x) {
 	int i = 0, j = 0;	
-	printf("x = %d\n", x);
 	for (i = 0; i < x; i++) {
 		j += i;
 	}
@@ -188,22 +187,24 @@ void task_iterate(int x) {
 /* Periodic task function */
 void periodic_task() {
 	printf("P task created\n\n");
-	NODE first = _tp[task_idx].arg;
+	NODE first;
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	task_wait_for_activation();
+	pthread_barrier_wait(&barrier);
 
 	while(1) {
 		printf("P task exe...\n");
 		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+		first = _tp[task_idx].arg;
 		while (first != NULL) {
 			if (first->type == 'L') {
-				printf("Lock detected\n");
+				//printf("Lock detected\n");
 				pthread_mutex_lock(&task_mut[first->val]);
 			} else if(first->type == 'U') {
-				printf("Unlock detected\n");
+				//printf("Unlock detected\n");
 				pthread_mutex_unlock(&task_mut[first->val]);
 			} else {
-				printf("Periodic Iteration detected\n");
+				//printf("Periodic Iteration detected\n");
 				task_iterate(first->val);
 			}
 			first = first->next;			
@@ -216,16 +217,30 @@ void periodic_task() {
 /* Aperiodic task function */
 void aperiodic_task() {		
 	printf("A P task created count: %d\n", ++_twait_count[_tp[task_idx].event]);
-	NODE first = _tp[task_idx].arg;	
+	NODE first;	
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	task_wait_for_activation();
+	pthread_barrier_wait(&barrier);
 
 	while(1) {
 		sem_wait(&_event_sem[_tp[task_idx].event]);	
 		printf("A task exe...\n");
-		printf("Aperiodic Iteration detected\n");
 		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-		task_iterate(first->val);
+		first = _tp[task_idx].arg;
+
+		while (first != NULL) {
+			if (first->type == 'L') {
+				//printf("Lock detected\n");
+				pthread_mutex_lock(&task_mut[first->val]);
+			} else if(first->type == 'U') {
+				//printf("Unlock detected\n");
+				pthread_mutex_unlock(&task_mut[first->val]);
+			} else {
+				//printf("Aperiodic Iteration detected\n");
+				task_iterate(first->val);
+			}
+			first = first->next;			
+		}
 		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	}
 }
@@ -276,7 +291,10 @@ int main(int argc, char **argv) {
     	printf("%s\n", line);
 		create_task(line);
 	}
-	
+
+	//printf("*************task count for barrier %d **************\n", task_count+1);	
+	pthread_barrier_init(&barrier, NULL, (task_count + 1));
+
 	pthread_attr_t myatt;
 	struct sched_param mypar;
 	pthread_attr_init(&myatt);
@@ -287,7 +305,8 @@ int main(int argc, char **argv) {
 	
 	int i = 0;
 	for (i = 0; i < task_count; i++) task_activation(i);
-	
+	pthread_barrier_wait(&barrier);
+
 	tspec sys_time;
 	clock_gettime(CLOCK_MONOTONIC, &sys_time);
 	tspec total = tspec_from(time);

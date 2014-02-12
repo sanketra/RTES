@@ -45,3 +45,5 @@ sem_t _event_sem[MAX_EVENTS];
 int _twait_count[MAX_EVENTS];
 pthread_t event_thread;
 pthread_mutex_t task_mut[MAX_MUTEXES];
+pthread_barrier_t barrier;
+
