@@ -275,7 +275,7 @@ int main(int argc, char **argv) {
 	int i = 0;
 	for (i = 0; i < task_count; i++) task_activation(i);
 	
-	int fd = open("/dev/input/event2", O_RDONLY);
+	int fd = open("/dev/input/by-path/platform-i8042-serio-0-event-kbd", O_RDONLY);
     struct input_event ev;
 
 	printf("Listening to key-press event...\n");
