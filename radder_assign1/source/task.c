@@ -1,4 +1,4 @@
-#include "task.h"
+#include "../include/task.h"
 
 /* Function Prototypes */
 void task_wait_for_activation();
@@ -10,7 +10,7 @@ static void release_tp(int);
    Releases allocated memory in each task */
 static void task_exit_handler() {
 	// Clean up
-	printf("Clean up...%d\n", task_idx);
+	//printf("Clean up of task %d\n", task_idx);
 	release_nodes(_tp[task_idx].arg);
 	release_tp(task_idx);
 }
@@ -88,15 +88,15 @@ void set_taskparam(char *task_spec, int i) {
 	while ((pch = strtok(NULL, " ")) != NULL) {
 		c = pch[0];
 		if (c == 'L') {
-			printf("Lock variable: %s\n", pch);								
+			//printf("Lock variable: %s\n", pch);								
 			sscanf(pch, "L(%d)", &val);
 			_tp[i].arg = insert_rear(_tp[i].arg, val, 'L');
 		} else if (c == 'U') {
-			printf("Unlock variable: %s\n", pch);								
+			//printf("Unlock variable: %s\n", pch);								
 			sscanf(pch, "U(%d)", &val);
 			_tp[i].arg = insert_rear(_tp[i].arg, val, 'U');
 		} else {
-			printf("Iteration variable: %s\n", pch);								
+			//printf("Iteration variable: %s\n", pch);								
 			sscanf(pch, "%d", &val);
 			_tp[i].arg = insert_rear(_tp[i].arg, val, 'I');
 		} 
@@ -186,14 +186,14 @@ void task_iterate(int x) {
 
 /* Periodic task function */
 void periodic_task() {
-	printf("P task created\n\n");
+	//printf("P task created\n\n");
 	NODE first;
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	task_wait_for_activation();
 	pthread_barrier_wait(&barrier);
 
 	while(1) {
-		printf("P task exe...\n");
+		//printf("P task exe...\n");
 		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 		first = _tp[task_idx].arg;
 		while (first != NULL) {
@@ -216,7 +216,7 @@ void periodic_task() {
 
 /* Aperiodic task function */
 void aperiodic_task() {		
-	printf("A P task created count: %d\n", ++_twait_count[_tp[task_idx].event]);
+	//printf("A P task created count: %d\n", ++_twait_count[_tp[task_idx].event]);
 	NODE first;	
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	task_wait_for_activation();
@@ -224,7 +224,7 @@ void aperiodic_task() {
 
 	while(1) {
 		sem_wait(&_event_sem[_tp[task_idx].event]);	
-		printf("A task exe...\n");
+		//printf("A task exe...\n");
 		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 		first = _tp[task_idx].arg;
 
@@ -250,7 +250,7 @@ static void* wait_for_keypress() {
 	int fd = open(KBD_PATH, O_RDONLY);
     struct input_event ev;
 	int i = 0;
-	printf("Listening to key-press event...\n");
+	//printf("New thread listening to key-press event...\n");
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 
     while(1)
@@ -258,9 +258,9 @@ static void* wait_for_keypress() {
         read(fd, &ev, sizeof(struct input_event));
         if(ev.type == 1) {
             if(ev.value == 0 && (ev.code > 0 && ev.code <= 11)) {
-                printf("Key-Pressed : [key %i]\n ", (ev.code - 1) % 10);
+                //printf("Key-Pressed : [key %i]\n ", (ev.code - 1) % 10);
 				for(i = 0; i < _twait_count[(ev.code - 1) % 10]; i++) {
-					printf("Waking...%d \n", i);
+					//printf("Waking...%d \n", i);
 					sem_post(&_event_sem[(ev.code - 1) % 10]);
 				}
 			}
@@ -277,6 +277,7 @@ int main(int argc, char **argv) {
 	char *line = NULL;
 	size_t n = 0;
 	size_t len;
+	system_init();
 	fp = fopen(argv[1], "r");
 
 	if (fp == NULL)
@@ -287,8 +288,8 @@ int main(int argc, char **argv) {
 	int time = atoi(strtok(NULL, " "));
 
 	while ((len = getline(&line, &n, fp)) != -1) {
-    	printf("Retrieved line of length %zd:\n", len);
-    	printf("%s\n", line);
+    	//printf("Retrieved line of length %zd:\n", len);
+    	//printf("%s\n", line);
 		create_task(line);
 	}
 
@@ -313,7 +314,7 @@ int main(int argc, char **argv) {
 	tspec end_time = tspec_add(&sys_time, &total);
 	clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &end_time, NULL);
 	
-	printf("\n\n\n\n\nMain thread woke up\n\n\n\n\n");
+	//printf("\n\n\n******Main thread woke up*****\n\n\n");
 	for(i = 0; i < task_count; i++) {
     	pthread_cancel(_taskid[i]);
 	}
@@ -323,6 +324,6 @@ int main(int argc, char **argv) {
 	pthread_cancel(event_thread);
 	pthread_join(event_thread, NULL);
  
-	printf("\n\n\n\n\nMain thread exiting\n\n\n\n\n");
+	//printf("\n\n\n*****Main thread exiting*****\n\n\n");
 	return 0;
 }

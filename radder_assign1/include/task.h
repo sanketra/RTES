@@ -12,7 +12,7 @@
 #include "q.h"
 
 
-#define MAX_TASKS 20
+#define MAX_TASKS 50
 #define MAX_EVENTS 10
 #define EVENT_THREAD_PRIORITY 99
 #define MAX_MUTEXES 10
