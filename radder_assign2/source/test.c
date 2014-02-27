@@ -102,7 +102,7 @@ int test_load_factor(TASK first, int l_factor) {
 			h = h_cal(first, t);
 			u = h/t;
 			printf("t: %d  h:%lf  u: %lf\n", t, h, u);
-			if(t == l_factor) return 1;
+			if(t >= l_factor) return 1;
 			if(u > 1.0) return -1;
 			temp = temp->next;
 		}
@@ -306,7 +306,7 @@ void UUnifast(int n, double U, double *a) {
 }
 
 void generate_taskset() {
-	double u = 0.05, t, c, a[10];
+	double u = 0.675, t, c, d, a[10];
 	int i = 0, j = 0;
 	//for(u = 0.05; u < 0.95; u += 0.1) {
 		for(j = 0; j < 10000; j++) {
@@ -315,7 +315,8 @@ void generate_taskset() {
 			for(i = 0; i < task_count[taskset_count]; i++) {
 				t = 1000 + rand() / (RAND_MAX/(10000 - 1000 + 1) + 1);
 				c = a[i] * t;
-				task_set[taskset_count] = insert_rear(task_set[taskset_count], c, t+(rand()%10), t, i);
+				d = c + rand() / (RAND_MAX/(t - c + 1) + 1);
+				task_set[taskset_count] = insert_rear(task_set[taskset_count], c, d, t, i);
 			}
 			taskset_count++;
 		}
