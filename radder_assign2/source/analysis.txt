@@ -1,0 +1,271 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls   s/call   s/call  name    
+ 66.07     15.25    15.25  1462706     0.00     0.00  test_rt
+ 14.54     18.61     3.35   250255     0.00     0.00  calculate_busyperiod
+  7.89     20.43     1.82   400001     0.00     0.00  cal_effective_utilisation
+  3.21     21.16     0.74       40     0.02     0.04  taskset_with_utilisation
+  2.25     21.68     0.52  6000001     0.00     0.00  insert_rear
+  2.14     22.18     0.49  1134800     0.00     0.00  h_cal
+  1.13     22.44     0.26   800002     0.00     0.00  test_utilisation
+  0.95     22.66     0.22  6695025     0.00     0.00  cal_utilisation_val
+  0.95     22.88     0.22  6000000     0.00     0.00  cal_period
+  0.30     22.95     0.07   800002     0.00     0.00  test_preutilisation
+  0.13     22.98     0.03   410000     0.00     0.00  release_nodes
+  0.13     23.01     0.03   400000     0.00     0.00  UUnifast
+  0.09     23.03     0.02   295023     0.00     0.00  rt_analysis
+  0.09     23.05     0.02   250255     0.00     0.00  test_load_factor
+  0.04     23.06     0.01       41     0.00     0.10  test_EDF
+  0.04     23.07     0.01       41     0.00     0.01  test_RM_DM
+  0.04     23.08     0.01        6     0.00     0.00  write_utilisation
+  0.00     23.08     0.00   295023     0.00     0.00  test_rt_utilisation
+  0.00     23.08     0.00       41     0.00     0.00  release_tasks
+  0.00     23.08     0.00       41     0.00     0.42  test_FP
+  0.00     23.08     0.00       40     0.00     0.53  perform_test
+  0.00     23.08     0.00        3     0.00     0.00  reset_counters
+  0.00     23.08     0.00        1     0.00    22.55  generate_taskset
+
+ %         the percentage of the total running time of the
+time       program used by this function.
+
+cumulative a running sum of the number of seconds accounted
+ seconds   for by this function and those listed above it.
+
+ self      the number of seconds accounted for by this
+seconds    function alone.  This is the major sort for this
+           listing.
+
+calls      the number of times this function was invoked, if
+           this function is profiled, else blank.
+ 
+ self      the average number of milliseconds spent in this
+ms/call    function per call, if this function is profiled,
+	   else blank.
+
+ total     the average number of milliseconds spent in this
+ms/call    function and its descendents per call, if this 
+	   function is profiled, else blank.
+
+name       the name of the function.  This is the minor sort
+           for this listing. The index shows the location of
+	   the function in the gprof listing. If the index is
+	   in parenthesis it shows where it would appear in
+	   the gprof listing if it were to be printed.
+
+		     Call graph (explanation follows)
+
+
+granularity: each sample hit covers 4 byte(s) for 0.04% of 23.08 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]    100.0    0.00   23.08                 main [1]
+                0.00   22.55       1/1           generate_taskset [2]
+                0.00    0.42       1/41          test_FP [5]
+                0.00    0.10       1/41          test_EDF [7]
+                0.00    0.01       1/41          test_RM_DM [16]
+                0.00    0.00       1/41          release_tasks [20]
+                0.00    0.00       1/6000001     insert_rear [10]
+                0.00    0.00       1/3           reset_counters [24]
+-----------------------------------------------
+                0.00   22.55       1/1           main [1]
+[2]     97.7    0.00   22.55       1         generate_taskset [2]
+                0.00   21.00      40/40          perform_test [3]
+                0.74    0.77      40/40          taskset_with_utilisation [9]
+                0.00    0.03      40/41          release_tasks [20]
+                0.01    0.00       6/6           write_utilisation [22]
+                0.00    0.00       2/3           reset_counters [24]
+-----------------------------------------------
+                0.00   21.00      40/40          generate_taskset [2]
+[3]     91.0    0.00   21.00      40         perform_test [3]
+                0.00   16.85      40/41          test_FP [5]
+                0.01    3.94      40/41          test_EDF [7]
+                0.01    0.20      40/41          test_RM_DM [16]
+-----------------------------------------------
+                1.82   15.45  400001/400001      test_FP [5]
+[4]     74.8    1.82   15.45  400001         cal_effective_utilisation [4]
+               15.25    0.00 1462706/1462706     test_rt [6]
+                0.20    0.00 6000001/6695025     cal_utilisation_val [14]
+-----------------------------------------------
+                0.00    0.42       1/41          main [1]
+                0.00   16.85      40/41          perform_test [3]
+[5]     74.8    0.00   17.27      41         test_FP [5]
+                1.82   15.45  400001/400001      cal_effective_utilisation [4]
+-----------------------------------------------
+               15.25    0.00 1462706/1462706     cal_effective_utilisation [4]
+[6]     66.1   15.25    0.00 1462706         test_rt [6]
+-----------------------------------------------
+                0.00    0.10       1/41          main [1]
+                0.01    3.94      40/41          perform_test [3]
+[7]     17.5    0.01    4.04      41         test_EDF [7]
+                3.35    0.00  250255/250255      calculate_busyperiod [8]
+                0.02    0.49  250255/250255      test_load_factor [11]
+                0.13    0.00  400001/800002      test_utilisation [13]
+                0.04    0.00  400001/800002      test_preutilisation [17]
+-----------------------------------------------
+                3.35    0.00  250255/250255      test_EDF [7]
+[8]     14.5    3.35    0.00  250255         calculate_busyperiod [8]
+-----------------------------------------------
+                0.74    0.77      40/40          generate_taskset [2]
+[9]      6.5    0.74    0.77      40         taskset_with_utilisation [9]
+                0.52    0.00 6000000/6000001     insert_rear [10]
+                0.22    0.00 6000000/6000000     cal_period [15]
+                0.03    0.00  400000/400000      UUnifast [19]
+-----------------------------------------------
+                0.00    0.00       1/6000001     main [1]
+                0.52    0.00 6000000/6000001     taskset_with_utilisation [9]
+[10]     2.3    0.52    0.00 6000001         insert_rear [10]
+-----------------------------------------------
+                0.02    0.49  250255/250255      test_EDF [7]
+[11]     2.2    0.02    0.49  250255         test_load_factor [11]
+                0.49    0.00 1134800/1134800     h_cal [12]
+-----------------------------------------------
+                0.49    0.00 1134800/1134800     test_load_factor [11]
+[12]     2.1    0.49    0.00 1134800         h_cal [12]
+-----------------------------------------------
+                0.13    0.00  400001/800002      test_EDF [7]
+                0.13    0.00  400001/800002      test_RM_DM [16]
+[13]     1.1    0.26    0.00  800002         test_utilisation [13]
+-----------------------------------------------
+                0.01    0.00  295023/6695025     rt_analysis [21]
+                0.01    0.00  400001/6695025     test_RM_DM [16]
+                0.20    0.00 6000001/6695025     cal_effective_utilisation [4]
+[14]     1.0    0.22    0.00 6695025         cal_utilisation_val [14]
+-----------------------------------------------
+                0.22    0.00 6000000/6000000     taskset_with_utilisation [9]
+[15]     1.0    0.22    0.00 6000000         cal_period [15]
+-----------------------------------------------
+                0.00    0.01       1/41          main [1]
+                0.01    0.20      40/41          perform_test [3]
+[16]     0.9    0.01    0.21      41         test_RM_DM [16]
+                0.13    0.00  400001/800002      test_utilisation [13]
+                0.04    0.00  400001/800002      test_preutilisation [17]
+                0.02    0.01  295023/295023      rt_analysis [21]
+                0.01    0.00  400001/6695025     cal_utilisation_val [14]
+-----------------------------------------------
+                0.04    0.00  400001/800002      test_EDF [7]
+                0.04    0.00  400001/800002      test_RM_DM [16]
+[17]     0.3    0.07    0.00  800002         test_preutilisation [17]
+-----------------------------------------------
+                0.03    0.00  410000/410000      release_tasks [20]
+[18]     0.1    0.03    0.00  410000         release_nodes [18]
+-----------------------------------------------
+                0.03    0.00  400000/400000      taskset_with_utilisation [9]
+[19]     0.1    0.03    0.00  400000         UUnifast [19]
+-----------------------------------------------
+                0.00    0.00       1/41          main [1]
+                0.00    0.03      40/41          generate_taskset [2]
+[20]     0.1    0.00    0.03      41         release_tasks [20]
+                0.03    0.00  410000/410000      release_nodes [18]
+-----------------------------------------------
+                0.02    0.01  295023/295023      test_RM_DM [16]
+[21]     0.1    0.02    0.01  295023         rt_analysis [21]
+                0.01    0.00  295023/6695025     cal_utilisation_val [14]
+                0.00    0.00  295023/295023      test_rt_utilisation [23]
+-----------------------------------------------
+                0.01    0.00       6/6           generate_taskset [2]
+[22]     0.0    0.01    0.00       6         write_utilisation [22]
+-----------------------------------------------
+                0.00    0.00  295023/295023      rt_analysis [21]
+[23]     0.0    0.00    0.00  295023         test_rt_utilisation [23]
+-----------------------------------------------
+                0.00    0.00       1/3           main [1]
+                0.00    0.00       2/3           generate_taskset [2]
+[24]     0.0    0.00    0.00       3         reset_counters [24]
+-----------------------------------------------
+
+ This table describes the call tree of the program, and was sorted by
+ the total amount of time spent in each function and its children.
+
+ Each entry in this table consists of several lines.  The line with the
+ index number at the left hand margin lists the current function.
+ The lines above it list the functions that called this function,
+ and the lines below it list the functions this one called.
+ This line lists:
+     index	A unique number given to each element of the table.
+		Index numbers are sorted numerically.
+		The index number is printed next to every function name so
+		it is easier to look up where the function is in the table.
+
+     % time	This is the percentage of the `total' time that was spent
+		in this function and its children.  Note that due to
+		different viewpoints, functions excluded by options, etc,
+		these numbers will NOT add up to 100%.
+
+     self	This is the total amount of time spent in this function.
+
+     children	This is the total amount of time propagated into this
+		function by its children.
+
+     called	This is the number of times the function was called.
+		If the function called itself recursively, the number
+		only includes non-recursive calls, and is followed by
+		a `+' and the number of recursive calls.
+
+     name	The name of the current function.  The index number is
+		printed after it.  If the function is a member of a
+		cycle, the cycle number is printed between the
+		function's name and the index number.
+
+
+ For the function's parents, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the function into this parent.
+
+     children	This is the amount of time that was propagated from
+		the function's children into this parent.
+
+     called	This is the number of times this parent called the
+		function `/' the total number of times the function
+		was called.  Recursive calls to the function are not
+		included in the number after the `/'.
+
+     name	This is the name of the parent.  The parent's index
+		number is printed after it.  If the parent is a
+		member of a cycle, the cycle number is printed between
+		the name and the index number.
+
+ If the parents of the function cannot be determined, the word
+ `<spontaneous>' is printed in the `name' field, and all the other
+ fields are blank.
+
+ For the function's children, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the child into the function.
+
+     children	This is the amount of time that was propagated from the
+		child's children to the function.
+
+     called	This is the number of times the function called
+		this child `/' the total number of times the child
+		was called.  Recursive calls by the child are not
+		listed in the number after the `/'.
+
+     name	This is the name of the child.  The child's index
+		number is printed after it.  If the child is a
+		member of a cycle, the cycle number is printed
+		between the name and the index number.
+
+ If there are any cycles (circles) in the call graph, there is an
+ entry for the cycle-as-a-whole.  This entry shows who called the
+ cycle (as parents) and the members of the cycle (as children.)
+ The `+' recursive calls entry shows the number of function calls that
+ were internal to the cycle, and the calls entry for each member shows,
+ for that member, how many times it was called from other members of
+ the cycle.
+
+
+Index by function name
+
+  [19] UUnifast                [3] perform_test           [16] test_RM_DM
+   [4] cal_effective_utilisation [18] release_nodes       [11] test_load_factor
+  [15] cal_period             [20] release_tasks          [17] test_preutilisation
+  [14] cal_utilisation_val    [24] reset_counters          [6] test_rt
+   [8] calculate_busyperiod   [21] rt_analysis            [23] test_rt_utilisation
+   [2] generate_taskset        [9] taskset_with_utilisation [13] test_utilisation
+  [12] h_cal                   [7] test_EDF               [22] write_utilisation
+  [10] insert_rear             [5] test_FP
