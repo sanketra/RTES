@@ -28,8 +28,8 @@ TASK insert_rear(TASK first, double wcet, double deadline, double period, int pr
 	return first;
 }
 
-void release_nodes(TASK first) {
-	if(first == NULL) return;
+TASK release_nodes(TASK first) {
+	if(first == NULL) return NULL;
 
 	TASK temp;
 	
@@ -38,4 +38,5 @@ void release_nodes(TASK first) {
 		first = first->next;
 		free(temp);
 	}
+	return NULL;
 }
