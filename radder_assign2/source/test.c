@@ -1,21 +1,4 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include "../include/q.h"
-#include<string.h>
-#include<math.h>
-
-#define MAX_TASKSET 10000
-
-TASK task_set[MAX_TASKSET];
-int task_count[MAX_TASKSET];
-int taskset_count;
-int s_count_edf[10];
-int u_count_edf;
-
-int s_count_rm[10];
-int u_count_rm;
-int s_count_fp[10];
-int u_count_fp;
+#include "../include/test.h"
 
 void display() {
 	int i = 0;
@@ -40,6 +23,7 @@ double test_utilisation(TASK first, int density_check) {
 			sum += temp->wcet/temp->period;
 		else
 			sum += temp->wcet/(temp->period > temp->deadline ? temp->deadline:temp->period);
+		printf("%lf\t %lf\t %lf\n", temp->period, temp->deadline, sum);
 		temp = temp->next;	
 	}
 	printf("Utilisation: %lf\n", sum);
@@ -75,7 +59,7 @@ long calculate_busyperiod(TASK first) {
 			//printf("Cur: %ld \t", cursum);
 		}
 		//printf("\nP: %ld  C: %ld\n", prevsum, cursum);
-		if(prevsum == cursum) 
+		if(prevsum == cursum || cursum < 0) 
 			return cursum;
 		else
 			prevsum = cursum;	
@@ -105,19 +89,20 @@ int test_load_factor(TASK first, long l_factor) {
 	double h, u;
 	TASK temp = first;
 
-	while(1) {
-		temp = first;
-		while(temp != NULL) {
+	while(temp != NULL) {
+		while(1) {
 			t = (temp->period * i) + temp->deadline;
 			h = h_cal(first, t);
 			u = h/t;
-			//printf("t: %d  h:%lf  u: %lf\n", t, h, u);
-			if(t > l_factor) return 1;
+			//printf("t: %ld  h:%lf  u: %lf\n", t, h, u);
+			if(t > l_factor) break;
 			if(u > 1.0) return -1;
-			temp = temp->next;
+			i++;
 		}
-		i++;
+		temp = temp->next;
+		i = 0;
 	}
+	return 1;
 }
 
 void test_EDF() {
@@ -206,7 +191,7 @@ int test_rt(TASK first, int i) {
 		}
 		//printf("\nP: %d  C: %d\n", prevsum, cursum);
 		if(prevsum == cursum) { 
-			if(cursum < temp->period && (cursum > 0)) {
+			if(cursum < (temp->period>temp->deadline?temp->deadline:temp->period) && (cursum > 0)) {
 				printf("RT analysis: Schedulable RT for job %d is: %d\n", i, cursum);
 			} else {
 				flag = 0;
@@ -241,7 +226,7 @@ int rt_analysis(TASK first, int n, int check) {
 	return flag;
 }
 
-void test_RM_DM() {
+void test_RM() {
 	int i = 0, response_t, flag = 0;
 	double U = 0.0, N = 0.0;
 	
@@ -257,7 +242,8 @@ void test_RM_DM() {
 			} else if(U > 1.0) 
 				printf("RM Utilisation test: Task set %d is RM not Scheduable\n", i);
 			else {
-				// Response time analysis for RM.
+				// Response time analysis.
+				task_set[i] = sort(task_set[i], 0);
 				flag = rt_analysis(task_set[i], i, 0);
 				if(flag == 1)s_count_rm[u_count_rm]++;			
 			}
@@ -267,11 +253,50 @@ void test_RM_DM() {
 			N =	cal_utilisation_val(task_count[i]);
 			if(U <= N) {
 				s_count_rm[u_count_rm]++;
-				printf("DM Utilisation test: Task set %d DM Scheduable\n", i);
+				printf("RM Utilisation test: Task set %d RM Scheduable\n", i);
 			} else {
-				// Response time analysis for DM.
+				// Response time analysis.
+				task_set[i] = sort(task_set[i], 0);
 				flag = rt_analysis(task_set[i], i, 1);
 				if(flag == 1)s_count_rm[u_count_rm]++;
+			}
+		}
+	}		
+}
+
+void test_DM() {
+	int i = 0, response_t, flag = 0;
+	double U = 0.0, N = 0.0;
+	
+	for(i = 0; i < taskset_count; i++) {
+		if(test_preutilisation(task_set[i]) == 1) {
+			// Utilisation based test for D = P.
+			U = test_utilisation(task_set[i], 0);
+			N =	cal_utilisation_val(task_count[i]);
+			//printf("U: %lf  N: %lf\n", U, N);
+			if(U <= N) {
+				s_count_dm[u_count_dm]++;
+				printf("DM Utilisation test: Task set %d is DM Scheduable\n", i);
+			} else if(U > 1.0) 
+				printf("DM Utilisation test: Task set %d is DM not Scheduable\n", i);
+			else {
+				// Response time analysis.
+				task_set[i] = sort(task_set[i], 1);
+				flag = rt_analysis(task_set[i], i, 0);
+				if(flag == 1)s_count_dm[u_count_dm]++;			
+			}
+		} else {
+			// Density check for D < P.
+			U = test_utilisation(task_set[i], 1);
+			N =	cal_utilisation_val(task_count[i]);
+			if(U <= N) {
+				s_count_dm[u_count_dm]++;
+				printf("DM Utilisation test: Task set %d DM Scheduable\n", i);
+			} else {
+				// Response time analysis.
+				task_set[i] = sort(task_set[i], 1);
+				flag = rt_analysis(task_set[i], i, 1);
+				if(flag == 1)s_count_dm[u_count_dm]++;
 			}
 		}
 	}		
@@ -312,7 +337,6 @@ void cal_effective_utilisation(TASK first) {
 		f = 0.0;
 		h_count = 0;
 	}
-	if(flag == 1)s_count_fp[u_count_fp]++;
 }
 
 void test_FP() {
@@ -323,18 +347,18 @@ void test_FP() {
 }
 
 void UUnifast(int n, double U, double *a) {
-	double sumU = U, nextsumU;
+	double sumU = U, nextsumU = 0.0;
 	double b;
 	int i = 0;
 	
 	for(i = 1; i < n; i++) {
-		nextsumU = sumU * ((double)rand()/(double)RAND_MAX);
+		nextsumU = sumU * pow(drand48(), (double)1.0/((double)n - (double)i));
 		a[i-1] = sumU - nextsumU;
 		sumU = nextsumU;
-		//printf("a[%d] = %lf\t", i-1, a[i-1]);
+		//printf("%lf\t", a[i-1]);
 	}
 	a[i-1] = sumU;
-	//printf("a[%d] = %lf\n", i-1, a[i-1]);
+	//printf("%lf\n", a[i-1]);
 }
 
 double cal_period(int i, int t_count) {
@@ -347,35 +371,35 @@ double cal_period(int i, int t_count) {
 }
 
 void taskset_with_utilisation(double u, int t_count, int d_range) {
-	double t, c, d, a[t_count], c1;
+	double t, c, d, c1, a[t_count];
 	int i = 0, j = 0;
 	
 	printf("Tasks generation started...\n");
 	for(j = 0; j < 10000; j++) {
-		UUnifast(10, u, a);
+		UUnifast(t_count, u, a);
 		task_count[taskset_count] = t_count;
-		for(i = 0; i < task_count[taskset_count]; i++) {
+		for(i = 0; i < t_count; i++) {
 			t = cal_period(i, t_count);
 			c = a[i] * t;
 			if(d_range == 1) {
-				d = c + rand() / (RAND_MAX/(t - c + 1) + 1);
+				d = (rand() % (int)(t + 1 - c)) + c;
 			} else {
 				c1 = c + (t-c)/2.0;
-				d = c1 + rand() / (RAND_MAX/(t - c1 + 1) + 1);
+				d = (rand() % (int)(t + 1 - c)) + c;
 			}
 			task_set[taskset_count] = insert_rear(task_set[taskset_count], c, d, t, i);
-			//printf("C :%lf \t D :%lf \t T :%lf\n", c, d, t);
+			//printf("U :%lf C :%lf \t D :%lf \t T :%lf\n", a[i], c, d, t);
 		}
 		taskset_count++;
 		//printf("Gen TS: %d\n", taskset_count);
 	}
-	printf("Tasks generation succeeded...\n");
+	//printf("Tasks generation succeeded...\n");
 }
 
 void write_utilisation(int count[], char *algo, int c, int d) {
 	int i = 0;
 	float u = 0.05;
-	freopen("output.txt", "a", stdout);
+	freopen(OUTPUT_FILE, "a", stdout);
 	if(d == 1)
 		printf("\n\n*************** ALGORITHM %s D[C, T] ***************\n", algo);
 	else
@@ -390,14 +414,14 @@ void write_utilisation(int count[], char *algo, int c, int d) {
 
 void perform_test() {
 	printf("Schedulability tests started...\n");
-	freopen("EDF_log.txt", "w", stdout);
+	freopen(EDF_FILE, "a", stdout);
 	test_EDF();
-	freopen("RM_DM_log.txt", "w", stdout);
-	test_RM_DM();
-	freopen("FP_log.txt", "w", stdout);
-	test_FP();
+	freopen(RM_FILE, "a", stdout);
+	test_RM();
+	freopen(DM_FILE, "a", stdout);
+	test_DM();
 	freopen("/dev/tty", "w", stdout);
-	printf("Schedulability tests concluded...\n");
+	//printf("Schedulability tests concluded...\n");
 }
 
 void release_tasks() {
@@ -415,36 +439,41 @@ void release_tasks() {
 void reset_counters() {
 	memset(s_count_edf, 0, sizeof(int) * 10);
 	memset(s_count_rm, 0, sizeof(int) * 10);
-	memset(s_count_fp, 0, sizeof(int) * 10);
+	memset(s_count_dm, 0, sizeof(int) * 10);
 }
 
 void generate_taskset() {
 	double u;
 	int t, d, count = 0;
 	for(d = 1; d < 3; d++) {
-		for(t = 10; t < 30; t += 10) {
-			for(u = 0.05; u <= 0.95; u += 0.1) {
-				taskset_with_utilisation(u, t, d);
-				perform_test();
-				u_count_edf++;
-				u_count_rm++;
-				u_count_fp++;
-				release_tasks();
-				//printf("U: %f\t C: %d\n", u, u_count_edf-1);
-			}
-
-			u_count_edf = 0;
-			u_count_rm = 0;
-			u_count_fp = 0;
-			count ++;
+		for(u = 0.05; u <= 0.95; u += 0.1) {
+			taskset_with_utilisation(u, TASKS_PER_SET, d);
+			perform_test();
+			u_count_edf++;
+			u_count_rm++;
+			u_count_dm++;
+			release_tasks();
+			//printf("U: %f\t C: %d\n", u, u_count_edf-1);
 		}
 
+		u_count_edf = 0;
+		u_count_rm = 0;
+		u_count_dm = 0;
+		count ++;
+
 		write_utilisation(s_count_edf, "EDF", count, d);
-		write_utilisation(s_count_rm, "RM_DM", count, d);
-		write_utilisation(s_count_fp,"FP", count, d);
+		write_utilisation(s_count_rm, "RM", count, d);
+		write_utilisation(s_count_dm,"DM", count, d);
 		reset_counters();
 		count = 0;
 	}
+}
+
+void remove_outputfiles() {
+	remove(OUTPUT_FILE);
+	remove(EDF_FILE);
+	remove(RM_FILE);
+	remove(DM_FILE);
 }
 
 int main() {
@@ -475,10 +504,15 @@ int main() {
 		taskset_count++;	
 	}
 	
+	srand(time(NULL));
+	srand48(time(NULL));
+
 	printf("\n*************** ALGORITHM EDF ***************\n");
 	test_EDF();
-	printf("\n*************** ALGORITHM RM_DM ***************\n");
-	test_RM_DM();
+	printf("\n*************** ALGORITHM RM ***************\n");
+	test_RM();
+	printf("\n*************** ALGORITHM DM ***************\n");
+	test_DM();
 	printf("\n*************** ALGORITHM FP ***************\n");	
 	test_FP();
 	release_tasks();
@@ -487,8 +521,10 @@ int main() {
 	printf("\nDo you wish generate synthetic tasks?(y or n)\n");
 	scanf(" %c", &c);
 	if(c == 'y' || c == 'Y') {
+		remove_outputfiles();
 		generate_taskset();
-		printf("Please check the file named output.txt\n");
+		printf("\n Analysis completed\n");
+		printf("Please check the file named output.txt in ../test directory\n");
 	} else {
 		printf("Terminating...\n");
 	}

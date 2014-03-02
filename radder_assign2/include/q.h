@@ -40,3 +40,48 @@ TASK release_nodes(TASK first) {
 	}
 	return NULL;
 }
+
+
+TASK list_switch(TASK l1, TASK l2)
+{
+    l1->next = l2->next;
+    l2->next = l1;
+    return l2;
+}
+
+
+TASK sort(TASK start, int flag) {
+    TASK p, q, top;
+    int changed = 1;
+
+    top = malloc(sizeof(struct task));
+
+    top->next = start;
+    if(start != NULL && start->next != NULL) {
+        while( changed ) {
+            changed = 0;
+            q = top;
+            p = top->next;
+            while( p->next != NULL ) {
+                /* push bigger items down */
+				if(flag == 0) { //RM
+                	if( p->period > p->next->period ) {
+                    	q->next = list_switch( p, p->next );
+                    	changed = 1;
+                	}
+				} else { //  DM
+					if( p->deadline > p->next->deadline ) {
+                    	q->next = list_switch( p, p->next );
+                    	changed = 1;
+                	}
+				}
+                q = p;
+                if( p->next != NULL )
+                    p = p->next;
+            }
+        }
+    }
+    p = top->next;
+    free( top );
+    return p;
+}

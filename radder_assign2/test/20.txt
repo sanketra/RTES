@@ -1,0 +1,78 @@
+
+
+*************** ALGORITHM EDF D[C, T] ***************
+U = 0.050000 	 S = 9960 	 Percentage = 99.600000
+U = 0.150000 	 S = 9875 	 Percentage = 98.750000
+U = 0.250000 	 S = 9615 	 Percentage = 96.150000
+U = 0.350000 	 S = 9255 	 Percentage = 92.550000
+U = 0.450000 	 S = 8698 	 Percentage = 86.980000
+U = 0.550000 	 S = 7883 	 Percentage = 78.830000
+U = 0.650000 	 S = 6821 	 Percentage = 68.210000
+U = 0.750000 	 S = 5557 	 Percentage = 55.570000
+U = 0.850000 	 S = 3655 	 Percentage = 36.550000
+U = 0.950000 	 S = 1393 	 Percentage = 13.930000
+
+
+*************** ALGORITHM RM D[C, T] ***************
+U = 0.050000 	 S = 9962 	 Percentage = 99.620000
+U = 0.150000 	 S = 9700 	 Percentage = 97.000000
+U = 0.250000 	 S = 9305 	 Percentage = 93.050000
+U = 0.350000 	 S = 8866 	 Percentage = 88.660000
+U = 0.450000 	 S = 8346 	 Percentage = 83.460000
+U = 0.550000 	 S = 7762 	 Percentage = 77.620000
+U = 0.650000 	 S = 7002 	 Percentage = 70.020000
+U = 0.750000 	 S = 5982 	 Percentage = 59.820000
+U = 0.850000 	 S = 3882 	 Percentage = 38.820000
+U = 0.950000 	 S = 63 	 Percentage = 0.630000
+
+
+*************** ALGORITHM DM D[C, T] ***************
+U = 0.050000 	 S = 10000 	 Percentage = 100.000000
+U = 0.150000 	 S = 10000 	 Percentage = 100.000000
+U = 0.250000 	 S = 10000 	 Percentage = 100.000000
+U = 0.350000 	 S = 10000 	 Percentage = 100.000000
+U = 0.450000 	 S = 10000 	 Percentage = 100.000000
+U = 0.550000 	 S = 9994 	 Percentage = 99.940000
+U = 0.650000 	 S = 9950 	 Percentage = 99.500000
+U = 0.750000 	 S = 9671 	 Percentage = 96.710000
+U = 0.850000 	 S = 7460 	 Percentage = 74.600000
+U = 0.950000 	 S = 116 	 Percentage = 1.160000
+
+
+*************** ALGORITHM EDF D[C+(T-C)/2, T] ***************
+U = 0.050000 	 S = 9967 	 Percentage = 99.670000
+U = 0.150000 	 S = 9854 	 Percentage = 98.540000
+U = 0.250000 	 S = 9655 	 Percentage = 96.550000
+U = 0.350000 	 S = 9243 	 Percentage = 92.430000
+U = 0.450000 	 S = 8656 	 Percentage = 86.560000
+U = 0.550000 	 S = 7908 	 Percentage = 79.080000
+U = 0.650000 	 S = 6832 	 Percentage = 68.320000
+U = 0.750000 	 S = 5477 	 Percentage = 54.770000
+U = 0.850000 	 S = 3524 	 Percentage = 35.240000
+U = 0.950000 	 S = 1316 	 Percentage = 13.160000
+
+
+*************** ALGORITHM RM D[C+(T-C)/2, T] ***************
+U = 0.050000 	 S = 9968 	 Percentage = 99.680000
+U = 0.150000 	 S = 9679 	 Percentage = 96.790000
+U = 0.250000 	 S = 9297 	 Percentage = 92.970000
+U = 0.350000 	 S = 8842 	 Percentage = 88.420000
+U = 0.450000 	 S = 8339 	 Percentage = 83.390000
+U = 0.550000 	 S = 7706 	 Percentage = 77.060000
+U = 0.650000 	 S = 7039 	 Percentage = 70.390000
+U = 0.750000 	 S = 6000 	 Percentage = 60.000000
+U = 0.850000 	 S = 4000 	 Percentage = 40.000000
+U = 0.950000 	 S = 67 	 Percentage = 0.670000
+
+
+*************** ALGORITHM DM D[C+(T-C)/2, T] ***************
+U = 0.050000 	 S = 10000 	 Percentage = 100.000000
+U = 0.150000 	 S = 10000 	 Percentage = 100.000000
+U = 0.250000 	 S = 10000 	 Percentage = 100.000000
+U = 0.350000 	 S = 10000 	 Percentage = 100.000000
+U = 0.450000 	 S = 9999 	 Percentage = 99.990000
+U = 0.550000 	 S = 9994 	 Percentage = 99.940000
+U = 0.650000 	 S = 9946 	 Percentage = 99.460000
+U = 0.750000 	 S = 9708 	 Percentage = 97.080000
+U = 0.850000 	 S = 7424 	 Percentage = 74.240000
+U = 0.950000 	 S = 138 	 Percentage = 1.380000
