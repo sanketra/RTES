@@ -23,7 +23,7 @@ double test_utilisation(TASK first, int density_check) {
 			sum += temp->wcet/temp->period;
 		else
 			sum += temp->wcet/(temp->period > temp->deadline ? temp->deadline:temp->period);
-		printf("%lf\t %lf\t %lf\n", temp->period, temp->deadline, sum);
+		//printf("%lf\t %lf\t %lf\n", temp->period, temp->deadline, sum);
 		temp = temp->next;	
 	}
 	printf("Utilisation: %lf\n", sum);
@@ -342,6 +342,7 @@ void cal_effective_utilisation(TASK first) {
 void test_FP() {
 	int i = 0;
 	for(i = 0; i < taskset_count; i++) {
+		task_set[i] = sort(task_set[i], 2);
 		cal_effective_utilisation(task_set[i]);
 	}
 }

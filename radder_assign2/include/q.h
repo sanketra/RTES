@@ -69,8 +69,13 @@ TASK sort(TASK start, int flag) {
                     	q->next = list_switch( p, p->next );
                     	changed = 1;
                 	}
-				} else { //  DM
+				} else if(flag == 1) { //  DM
 					if( p->deadline > p->next->deadline ) {
+                    	q->next = list_switch( p, p->next );
+                    	changed = 1;
+                	}
+				} else {// FP
+					if( p->priority > p->next->priority ) {
                     	q->next = list_switch( p, p->next );
                     	changed = 1;
                 	}
